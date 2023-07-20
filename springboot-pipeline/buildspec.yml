@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region ap-northeast-1)
+  build:
+    commands:
+      - mvn clean package
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t hello-spring-boot .
+      - docker tag hello-spring-boot:latest 112046827773.dkr.ecr.ap-northeast-1.amazonaws.com/oio:latest
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 112046827773.dkr.ecr.ap-northeast-1.amazonaws.com/oio:latest
+      - echo '[{"name":"my-container","imageUri":"112046827773.dkr.ecr.ap-northeast-1.amazonaws.com/oio:latest"}]' > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - '**/*'
+  name: BuildService
